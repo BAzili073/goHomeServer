@@ -7,7 +7,9 @@
  </head>
  <body>
 
-   <p>RED <input type="range" min="0" max="255" id="R" value="3"></p>
+   <p>RED <input type="range" min="0" max="255" id="RED" value="0"></p>
+   <p>GREEN <input type="range" min="0" max="255" id="GREEN" value="0"></p>
+   <p>BLUE <input type="range" min="0" max="255" id="BLUE" value="0"></p>
     <p id="Msg">{{.Msg}}</p>
 
     <script type="text/javascript">
@@ -15,13 +17,30 @@
        $("#RED").on("change", function(e){
          $.post({
            url: "/api/v1/values",
-           data: JSON.stringify({value: e.target.value,id : e.target.id}),
+           data: JSON.stringify({value: e.target.value,id:82}),
            dataType: "json",
            contentType: 'application/json; charset=utf-8'
          })
         // $("#Msg").text(e.target.value)
        });
-      });
+       $("#GREEN").on("change", function(e){
+         $.post({
+           url: "/api/v1/values",
+           data: JSON.stringify({value: e.target.value,id:71}),
+           dataType: "json",
+           contentType: 'application/json; charset=utf-8'
+         })
+       });
+       $("#BLUE").on("change", function(e){
+         $.post({
+           url: "/api/v1/values",
+           data: JSON.stringify({value: e.target.value,id:66}),
+           dataType: "json",
+           contentType: 'application/json; charset=utf-8'
+         })
+       });
+      }
+    );
     </script>
  </body>
 </html>

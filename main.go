@@ -32,6 +32,7 @@ func index(w http.ResponseWriter, r *http.Request){
 
 type createValueRequest struct {
   Value string `json:"value"`
+  Id int `json:"id"`
   // Value_byte byte `json:"value"`
 }
 
@@ -51,11 +52,12 @@ func createValue(w http.ResponseWriter, r *http.Request){
 
   b, err := strconv.Atoi(t.Value);
   c:=byte(b);
+  // n, err := strconv.Atoi(t.id);
+  u:=byte(t.Id);
+  sendCommand([]byte{0xA9,u,c});
 
-  sendCommand([]byte{0xA9,0x52,c});
 
-
-  js, err := json.Marshal(struct{Result string `json:"result"`; Hello byte}{"ok", c})
+  js, err := json.Marshal(struct{Result string `json:"result"`; Color_value byte;Color_id byte}{"ok", c,u })
 
   if err != nil {
     log.Fatal(err)
