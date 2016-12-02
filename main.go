@@ -4,6 +4,7 @@ import (
     "fmt"
     "net/http"
     "html/template"
+<<<<<<< HEAD
     "log"
     "encoding/json"
     "strconv"
@@ -12,6 +13,8 @@ import (
 //GOOS=linux GOARCH=arm GOARM=6 go build
 //scp /Users/bazilio/Works/goserver/test pi@192.168.1.50:GoServer
     //scp d:/Works/goserver/goserver pi@192.168.1.50:GoServer
+=======
+)
 
 type page struct {
   Title string
