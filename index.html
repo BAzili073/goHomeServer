@@ -7,34 +7,34 @@
  </head>
  <body>
 
-   <p>RED <input type="range" min="0" max="255" id="RED" value="0"></p>
-   <p>GREEN <input type="range" min="0" max="255" id="GREEN" value="0"></p>
-   <p>BLUE <input type="range" min="0" max="255" id="BLUE" value="0"></p>
+   <p>RED <input type="range" min="0" max="255" id="Red" value={{index .RGB_light "Red"}}></p>
+   <p>GREEN <input type="range" min="0" max="255" id="Green" value={{index .RGB_light "Green"}}></p>
+   <p>BLUE <input type="range" min="0" max="255" id="Blue" value={{index .RGB_light "Blue"}}></p>
     <p id="Msg">{{.Msg}}</p>
 
     <script type="text/javascript">
       $(function(){
-       $("#RED").on("change", function(e){
+       $("#Red").on("change", function(e){
          $.post({
            url: "/api/v1/values",
-           data: JSON.stringify({value: e.target.value,id:82}),
+           data: JSON.stringify({value: e.target.value,id:e.target.id}),
            dataType: "json",
            contentType: 'application/json; charset=utf-8'
          })
         // $("#Msg").text(e.target.value)
        });
-       $("#GREEN").on("change", function(e){
+       $("#Green").on("change", function(e){
          $.post({
            url: "/api/v1/values",
-           data: JSON.stringify({value: e.target.value,id:71}),
+           data: JSON.stringify({value: e.target.value,id:e.target.id}),
            dataType: "json",
            contentType: 'application/json; charset=utf-8'
          })
        });
-       $("#BLUE").on("change", function(e){
+       $("#Blue").on("change", function(e){
          $.post({
            url: "/api/v1/values",
-           data: JSON.stringify({value: e.target.value,id:66}),
+           data: JSON.stringify({value: e.target.value,id:e.target.id}),
            dataType: "json",
            contentType: 'application/json; charset=utf-8'
          })
