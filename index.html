@@ -6,14 +6,28 @@
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
  </head>
  <body>
-
+   <form>
+   <p><input type="number" min="1" max = "255" id = "time" value = "1"> <input type="button" id = "off" value="Выключить"></p>
    <p>RED <input type="range" min="0" max="255" id="Red" value={{index .RGB_light "Red"}}></p>
    <p>GREEN <input type="range" min="0" max="255" id="Green" value={{index .RGB_light "Green"}}></p>
    <p>BLUE <input type="range" min="0" max="255" id="Blue" value={{index .RGB_light "Blue"}}></p>
+   <p>Speed change <input type="range" min="0" max="255" id="speed" value={{index .RGB_light "Speed"}}></p>
     <p id="Msg">{{.Msg}}</p>
 
     <script type="text/javascript">
       $(function(){
+
+        $("#off").on("click", function(e){
+          $.post({
+            url: "/api/v1/values",
+            data: JSON.stringify({value: time.value ,id:e.target.id}),
+            dataType: "json",
+            contentType: 'application/json; charset=utf-8'
+          })
+         // $("#Msg").text(e.target.value)
+        });
+
+
        $("#Red").on("change", function(e){
          $.post({
            url: "/api/v1/values",
@@ -32,6 +46,14 @@
          })
        });
        $("#Blue").on("change", function(e){
+         $.post({
+           url: "/api/v1/values",
+           data: JSON.stringify({value: e.target.value,id:e.target.id}),
+           dataType: "json",
+           contentType: 'application/json; charset=utf-8'
+         })
+       });
+       $("#speed").on("change", function(e){
          $.post({
            url: "/api/v1/values",
            data: JSON.stringify({value: e.target.value,id:e.target.id}),

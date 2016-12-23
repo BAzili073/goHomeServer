@@ -8,6 +8,7 @@ import (
     "encoding/json"
     "strconv"
     "github.com/jacobsa/go-serial/serial"
+    "time"
 )
 
  var RGB_light  = map[string]int{};
@@ -57,15 +58,26 @@ func createValue(w http.ResponseWriter, r *http.Request){
 
 
   b, err := strconv.Atoi(t.Value);
-  c:=byte(b);
   // n, err := strconv.Atoi(t.id);
   // u:=byte(t.Id);
-    RGB_light[t.Id] = int(c);
-    log.Printf("%c =  %v",t.Id[0], RGB_light[t.Id])
-  sendCommand([]byte{0xA9,t.Id[0],c});
+    RGB_light[t.Id] = b;
 
 
-  js, err := json.Marshal(struct{Result string `json:"result"`; Color_value byte;Color_id string}{"ok", c,t.Id })
+    if (t.Id == "off"){
+      log.Printf ("Start timer on %v second",RGB_light[t.Id]);
+      time.AfterFunc(time.Duration(RGB_light[t.Id]) * time.Second, func() {
+          sendCommand([]byte{0xA9,'R',0x00});
+          sendCommand([]byte{0xA9,'G',0x00});
+          sendCommand([]byte{0xA9,'B',0x00});
+      })
+    }else if (t.Id == "Red" || t.Id == "Green" || t.Id == "Blue" || t.Id == "speed" ){
+       sendCommand([]byte{0xA9,t.Id[0],byte(RGB_light[t.Id])});
+       log.Printf("%c =  %v",t.Id[0], RGB_light[t.Id]);
+    }
+
+
+
+  js, err := json.Marshal(struct{Result string `json:"result"`; Color_value int;Color_id string}{"ok", RGB_light[t.Id],t.Id })
 
   if err != nil {
     log.Fatal(err)
@@ -76,10 +88,7 @@ func createValue(w http.ResponseWriter, r *http.Request){
 }
 
 func main() {
-
   // Set up options.
-
-
 
     http.HandleFunc("/", index)
     http.HandleFunc("/api/v1/values", createValue)
