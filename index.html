@@ -2,17 +2,33 @@
 <html>
  <head>
    <meta charset="utf-8">
+   <link rel="stylesheet" type="text/css" href="goHomeServer.css">
    <title> {{.Title}}</title>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
  </head>
  <body>
-   <form>
+     <p><input type="button" id = "setupPointsBut" value="Настроить"></p>
    <p><input type="number" min="1" max = "255" id = "time" value = "1"> <input type="button" id = "off" value="Выключить"></p>
    <p>RED <input type="range" min="0" max="255" id="Red" value={{index .RGB_light "Red"}}></p>
    <p>GREEN <input type="range" min="0" max="255" id="Green" value={{index .RGB_light "Green"}}></p>
    <p>BLUE <input type="range" min="0" max="255" id="Blue" value={{index .RGB_light "Blue"}}></p>
-   <p>Speed change <input type="range" min="0" max="255" id="speed" value={{index .RGB_light "Speed"}}></p>
-    <p id="Msg">{{.Msg}}</p>
+    <p>
+      Адрес: <input type="number" min="1" max = "5" id = "address" value = "1">
+      Ножка: <input type="number" min="1" max = "20" id = "pin" value = "1">
+      <br>
+      Команда: <select id="command">
+      <option selected value="cmdModeInput">Настроить как вход</option>
+      <option value="cmdModeOutput">Настроить как выход</option>
+      <option value="cmdHigh" >Включить</option>
+      <option value="cmdLow">Выключить</option>
+      </select>
+      <input type="button" id = "buttonSendCommand" value="Выполнить">
+    </p>
+
+    <p><input type="checkbox" id="hall_light" value="1"> Hall_light</p>
+
+
+  <p id="Msg">{{.Msg}}</p>
 
     <script type="text/javascript">
       $(function(){
@@ -27,6 +43,30 @@
          // $("#Msg").text(e.target.value)
         });
 
+        $("#setupPointsBut").on("click", function(e){
+          $.post({
+            url: "/api/v1/setup",
+          })
+        });
+
+        $("#buttonSendCommand").on("click", function(e){
+          $.post({
+            url: "/api/v1/control",
+            data: JSON.stringify({command:command.value,address: address.value, pin: pin.value}),
+            dataType: "json",
+            contentType: 'application/json; charset=utf-8'
+          })
+        });
+
+
+        $("#hall_light").on("change", function(e){
+          $.post({
+            url: "/api/v1/control",
+            data: JSON.stringify({command:"hall_l",address: $("#hall_light").is(':checked')?"1":"0"}),
+            dataType: "json",
+            contentType: 'application/json; charset=utf-8'
+          })
+        });
 
        $("#Red").on("change", function(e){
          $.post({
