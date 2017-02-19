@@ -2,6 +2,8 @@ package main
 //GOOS=linux GOARCH=arm GOARM=6 go build
 //scp ~/Work/goHomeServer/* pi@192.168.1.50:GoServer
 //scp d:/Works/goserver/goserver pi@192.168.1.50:GoServer
+//sudo /etc/init.d/goServer start
+
 
 import (
     "fmt"
@@ -64,7 +66,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func index(w http.ResponseWriter, r *http.Request){
   w.Header().Set("Content-type","text/html");
-
   t, err := template.ParseFiles("./index.html")
   if err !=nil {log.Panic(err)}
 
@@ -74,6 +75,7 @@ func index(w http.ResponseWriter, r *http.Request){
 type createValueRequest struct {
   Value string `json:"value"`
   Id string `json:"id"`
+  Palette string `json:"palette_s"`
   // Value_byte byte `json:"value"`
 }
 
@@ -162,17 +164,22 @@ func createValue(w http.ResponseWriter, r *http.Request){
            sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_GREEN,0x00});
       })
     }else if (t.Id == "Red" || t.Id == "Green" || t.Id == "Blue" ){ //|| t.Id == "speed" ){
-      var pin byte;
-      if (t.Id == "Red"){ pin = HALL_RGB_LIGHT_RED};
-      if (t.Id == "Green") {pin = HALL_RGB_LIGHT_BLUE};
-      if (t.Id == "Blue") {pin = HALL_RGB_LIGHT_GREEN};
-       sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,pin,byte(RGB_light[t.Id])});
+      // var pin byte;
+      // if (t.Id == "Red"){ pin = HALL_RGB_LIGHT_RED};
+      // if (t.Id == "Green") {pin = HALL_RGB_LIGHT_GREEN};
+      // if (t.Id == "Blue") {pin = HALL_RGB_LIGHT_BLUE};
+      //  sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,pin,byte(RGB_light[t.Id])});
 
+    }else if (t.Id == "palette" ){
+          log.Printf("b:%v     R:%v    G:%v     B:%v",b,(b|0xFF),(b|0x00FF),(b|0x0000FF));
+        // sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_RED,byte(RGB_light[t.Id] | 0xFF)});
+        // sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_GREEN,byte(RGB_light[t.Id] | 0x00FF)});
+        // sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_BLUE,byte(RGB_light[t.Id] | 0x0000FF)});
     }
 
 
 
-  js, err := json.Marshal(struct{Result string `json:"result"`; Color_value int;Color_id string}{"ok", RGB_light[t.Id],t.Id })
+  js, err := json.Marshal(struct{Result string `json:"result"`; Color_value int;Color_id string;Palette_s string}{"ok", RGB_light[t.Id],t.Id,t.Palette })
 
   if err != nil {
     log.Fatal(err)
@@ -208,6 +215,7 @@ func sendCommand(b []byte){
   port, err := serial.Open(options)
   if err != nil {
     log.Fatalf("serial.Open: %v", err)
+    return
   }
 
   // Make sure to close it later.

@@ -12,6 +12,14 @@
    <p>RED <input type="range" min="0" max="255" id="Red" value={{index .RGB_light "Red"}}></p>
    <p>GREEN <input type="range" min="0" max="255" id="Green" value={{index .RGB_light "Green"}}></p>
    <p>BLUE <input type="range" min="0" max="255" id="Blue" value={{index .RGB_light "Blue"}}></p>
+    <p>Выберите цвет: <input type="color" id = "palette" name="bg" value="#ff0000"></p>
+       <canvas height='50' width='200' id='example'>Пример! </canvas>
+       <script>
+         var example = document.getElementById("example"),
+             ctx     = example.getContext('2d');
+             ctx.fillStyle = 'rgb({{index .RGB_light "Red"}},{{index .RGB_light "Green"}},{{index .RGB_light "Blue"}})';
+         ctx.fillRect(0, 0, example.width, example.height);
+       </script>
     <p>
       Адрес: <input type="number" min="1" max = "5" id = "address" value = "1">
       Ножка: <input type="number" min="1" max = "20" id = "pin" value = "1">
@@ -67,14 +75,24 @@
             contentType: 'application/json; charset=utf-8'
           })
         });
-
+        $("#palette").on("change", function(e){
+          $.post({
+            url: "/api/v1/values",
+            data: JSON.stringify({value: e.target.value,id:e.target.id,palette_s:palette.value}),
+            dataType: "json",
+            contentType: 'application/json; charset=utf-8'
+          })
+          // location.reload();
+         // $("#Msg").text(e.target.value)
+        });
        $("#Red").on("change", function(e){
          $.post({
            url: "/api/v1/values",
-           data: JSON.stringify({value: e.target.value,id:e.target.id}),
+           data: JSON.stringify({value: e.target.value,id:e.target.id,palette_s:palette.value}),
            dataType: "json",
            contentType: 'application/json; charset=utf-8'
          })
+        //  location.reload();
         // $("#Msg").text(e.target.value)
        });
        $("#Green").on("change", function(e){
@@ -84,6 +102,7 @@
            dataType: "json",
            contentType: 'application/json; charset=utf-8'
          })
+        //  location.reload();
        });
        $("#Blue").on("change", function(e){
          $.post({
@@ -92,6 +111,7 @@
            dataType: "json",
            contentType: 'application/json; charset=utf-8'
          })
+        //  location.reload();
        });
        $("#speed").on("change", function(e){
          $.post({
