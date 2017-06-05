@@ -4,6 +4,10 @@ package main
 //scp d:/Works/goserver/goserver pi@192.168.1.50:GoServer
 //sudo /etc/init.d/goServer start
 
+//pulseaudio -D
+//sudo bluetoothctl -a
+//omxplayer -o alsa --vol -2500 https://nashe1.hostingradio.ru:18000/nashe-128.mp3
+//vi ~/.asoundrc
 
 import (
     "fmt"
@@ -14,7 +18,13 @@ import (
     "strconv"
     "github.com/jacobsa/go-serial/serial"
     "time"
+    "encoding/hex"
+    "strings"
+    // "os"
+    // "os/exec"
+    // "github.com/jleight/omxplayer"
 )
+
 var RADIO_COMMAND_RESPONSE_OK byte = 1;
 var RADIO_COMMAND_PINMODE byte =  2;
 var RADIO_COMMAND_DIGITAL_WRITE byte = 3;
@@ -134,6 +144,9 @@ func setupPoints(w http.ResponseWriter, r *http.Request){
     log.Fatal(err)
 
   }
+  if err != nil {
+    log.Fatal(err)
+  }
   w.Header().Set("Content-Type", "application/json")
   w.Write(js)
 }
@@ -157,6 +170,16 @@ func createValue(w http.ResponseWriter, r *http.Request){
 
 
     if (t.Id == "off"){
+      if (RGB_light[t.Id] == 1  ){
+          // cmd.Stdin = strings.NewReader("p");
+        }else{
+          // cmd := exec.Command("omxplayer", "-o", "alsa", "https://nashe1.hostingradio.ru:18000/nashe-128.mp3")
+          // cmd.Stdout = os.Stdout
+          // cmd.Stderr = os.Stderr
+        	// err = cmd.Start()
+}
+
+
       log.Printf ("Start timer on %v second",RGB_light[t.Id]);
       time.AfterFunc(time.Duration(RGB_light[t.Id]) * time.Second, func() {
            sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_RED,0x00});
@@ -164,17 +187,22 @@ func createValue(w http.ResponseWriter, r *http.Request){
            sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_GREEN,0x00});
       })
     }else if (t.Id == "Red" || t.Id == "Green" || t.Id == "Blue" ){ //|| t.Id == "speed" ){
-      // var pin byte;
-      // if (t.Id == "Red"){ pin = HALL_RGB_LIGHT_RED};
-      // if (t.Id == "Green") {pin = HALL_RGB_LIGHT_GREEN};
-      // if (t.Id == "Blue") {pin = HALL_RGB_LIGHT_BLUE};
-      //  sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,pin,byte(RGB_light[t.Id])});
+      var pin byte;
+      if (t.Id == "Red"){ pin = HALL_RGB_LIGHT_RED};
+      if (t.Id == "Green") {pin = HALL_RGB_LIGHT_GREEN};
+      if (t.Id == "Blue") {pin = HALL_RGB_LIGHT_BLUE};
+       sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,pin,byte(RGB_light[t.Id])});
 
     }else if (t.Id == "palette" ){
-          log.Printf("b:%v     R:%v    G:%v     B:%v",b,(b|0xFF),(b|0x00FF),(b|0x0000FF));
-        // sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_RED,byte(RGB_light[t.Id] | 0xFF)});
-        // sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_GREEN,byte(RGB_light[t.Id] | 0x00FF)});
-        // sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_BLUE,byte(RGB_light[t.Id] | 0x0000FF)});
+          s := strings.Split(t.Value, "#")
+          decoded, err := hex.DecodeString(s[1])
+          if err != nil {
+            log.Fatal(err)
+          }
+            log.Printf("R:%v    G:%v     B:%v",decoded[0],decoded[1],decoded[2]);
+        sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_RED,byte(decoded[0])});
+        sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_GREEN,byte(decoded[1])});
+        sendCommand([]byte{0xA9,0xA9,HALL_ADDRESS,0x01,RADIO_COMMAND_ANALOG_WRITE,HALL_RGB_LIGHT_BLUE,byte(decoded[2])});
     }
 
 
@@ -190,7 +218,23 @@ func createValue(w http.ResponseWriter, r *http.Request){
 }
 
 func main() {
+  // rx := flag.Bool("rx", false, "Read data received")
+
   // Set up options.
+  // if *rx {
+  // 		for {
+  // 			buf := make([]byte, 32)
+  // 			n, err := f.Read(buf)
+  // 			if err != nil {
+  // 				if err != io.EOF {
+  // 					fmt.Println("Error reading from serial port: ", err)
+  // 				}
+  // 			} else {
+  // 				buf = buf[:n]
+  // 				fmt.Println("Rx: ", hex.EncodeToString(buf))
+  // 			}
+  // 		}
+  // 	}
   http.HandleFunc("/", index)
   http.HandleFunc("/api/v1/values", createValue)
   http.HandleFunc("/api/v1/control", controlPoints)
@@ -203,6 +247,12 @@ func main() {
 
 
 func sendCommand(b []byte){
+
+
+  // Make sure to close it later.
+  // defer port.Close()
+
+  // Write 4 bytes to the port.
   options := serial.OpenOptions{
     PortName: "/dev/ttyAMA0",
     BaudRate: 115200,
@@ -214,14 +264,12 @@ func sendCommand(b []byte){
   // Open the port.
   port, err := serial.Open(options)
   if err != nil {
-    log.Fatalf("serial.Open: %v", err)
+    // log.Fatalf("serial.Open: %v", err)
+    log.Printf("serial.Open: %v", err)
     return
+  }else{
+    defer port.Close()
   }
-
-  // Make sure to close it later.
-  defer port.Close()
-
-  // Write 4 bytes to the port.
   // b := []byte{0xA9,0x47,[]byte{t.Value}}
 
   n, err := port.Write(b)
